@@ -86,6 +86,7 @@ public class ShowImagesActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot snapshot) {
                 //dismissing the progress dialog
 //                progressDialog.dismiss();
+                uploads.clear();
 
                 //iterating through all the values in database
                 for (DataSnapshot postSnapshot : snapshot.getChildren()) {
@@ -93,10 +94,12 @@ public class ShowImagesActivity extends AppCompatActivity {
                     uploads.add(upload);
                 }
                 //creating adapter
-                adapter = new MyNoticeAdapter(getApplicationContext(), uploads);
-
-                //adding adapter to recyclerview
-                recyclerView.setAdapter(adapter);
+                if (adapter != null) // it works second time and later
+                    adapter.notifyDataSetChanged();
+                else { // it works first time
+                    adapter = new MyNoticeAdapter(getApplicationContext(), uploads);
+                    recyclerView.setAdapter(adapter);
+                }
             }
 
             @Override

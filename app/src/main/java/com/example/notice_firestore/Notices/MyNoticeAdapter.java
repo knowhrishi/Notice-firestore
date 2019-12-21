@@ -1,6 +1,7 @@
 package com.example.notice_firestore.Notices;
 
 import android.content.Context;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,19 +37,24 @@ public class MyNoticeAdapter extends RecyclerView.Adapter<MyNoticeAdapter.ViewHo
     public void onBindViewHolder(ViewHolder holder, int position) {
         Upload upload = uploads.get(position);
 
-        holder.textViewContent.setText(upload.getContent());
+        holder.textViewContent.setText(Html.fromHtml(upload.getContent()));
         holder.textViewAuthorname.setText(upload.getAuthor());
         holder.timestamp.setText(upload.getTimestamp());
 
 //        Glide.with(context).load(upload.getUrl()).into(holder.imageView);
 
 //
-        Picasso.get()
-                .load(upload.getUrl())
+        if(upload.getUrl().equals("empty")){
+            holder.imageView.setVisibility(View.GONE);
+        }else {
+            Picasso.get()
+                    .load(upload.getUrl())
 //                .placeholder(R.drawable.placeholder)   // optional
 //                .error(R.drawable.error)      // optional
 //                .resize(400,400)                        // optional
-                .into(holder.imageView);
+                    .into(holder.imageView);
+        }
+
     }
 
     @Override

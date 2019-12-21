@@ -44,10 +44,11 @@ public class NoticesMainActivity extends AppCompatActivity {
     private EditText editTextName;
     private ImageView imageView;
 
+
     private static final String TAG = "NoticeMainActivity";
 
     //uri to store file
-    private Uri filePath;
+    private Uri filePath = null;
 
     MaterialSpinner year;
     String notif_year;
@@ -55,7 +56,7 @@ public class NoticesMainActivity extends AppCompatActivity {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private FirebaseAuth auth;
     private DocumentReference noteRef;
-    String authorname;
+    String authorname,notificationText="";
     String currenttimestamp;
     LottieAnimationView lottieAnimationView;
 
@@ -96,9 +97,39 @@ public class NoticesMainActivity extends AppCompatActivity {
         buttonUpload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                uploadFile();
-                lottieAnimationView.setVisibility(View.VISIBLE);
-                lottieAnimationView.playAnimation();
+
+                notificationText = editTextName.getText().toString();
+                notificationText= notificationText.replaceAll("\\*"," <b>");
+
+
+                editTextName.setText(notificationText);
+               /* if(!notificationText.equals("")){
+                    StringBuilder myName = new StringBuilder("domanokz");
+                    int FLG=0;
+                    for (int i=0;i<notificationText.length();i++){
+                        if(notificationText.charAt(i)=='*'){
+                            FLG=1;
+                            StringBuilder.setCa
+                        }
+                    }
+                }*/
+
+                if(filePath!=null){
+                    uploadFile();
+                    lottieAnimationView.setVisibility(View.VISIBLE);
+                    lottieAnimationView.playAnimation();
+                }else {
+                    Upload upload = new Upload(
+                            auth.getUid(),
+                            notificationText,
+                            "empty",
+                            authorname,
+                            currenttimestamp,
+                            notif_year);
+                    String uploadID = mDatabase.push().getKey();
+                    mDatabase.child(uploadID).setValue(upload);
+                }
+
             }
         });
 
@@ -134,8 +165,8 @@ public class NoticesMainActivity extends AppCompatActivity {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                    lottieAnimationView.pauseAnimation();
-                    lottieAnimationView.setVisibility(View.INVISIBLE);
+                        lottieAnimationView.pauseAnimation();
+                        lottieAnimationView.setVisibility(View.INVISIBLE);
                     }
                 });
 
@@ -194,7 +225,7 @@ public class NoticesMainActivity extends AppCompatActivity {
                                 public void onSuccess(Uri uri) {
                                     Upload upload = new Upload(
                                             auth.getUid(),
-                                            editTextName.getText().toString().trim(),
+                                            notificationText,
                                             uri.toString(),
                                             authorname,
                                             currenttimestamp,
