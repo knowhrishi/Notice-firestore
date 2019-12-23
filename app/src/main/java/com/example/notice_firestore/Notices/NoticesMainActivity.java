@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
@@ -33,6 +34,8 @@ import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class NoticesMainActivity extends AppCompatActivity {
 
@@ -56,6 +59,8 @@ public class NoticesMainActivity extends AppCompatActivity {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private FirebaseAuth auth;
     private DocumentReference noteRef;
+    private DatabaseReference databaseReference, myRef;
+    private FirebaseDatabase mFirebaseDatabase;
     String authorname,notificationText="";
     String currenttimestamp;
     LottieAnimationView lottieAnimationView;
@@ -76,6 +81,13 @@ public class NoticesMainActivity extends AppCompatActivity {
         imageView = (ImageView) findViewById(R.id.imageView);
         editTextName = (EditText) findViewById(R.id.editText);
 //        textViewShow = (TextView) findViewById(R.id.textViewShow);
+
+        auth = FirebaseAuth.getInstance();
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        myRef = mFirebaseDatabase.getReference();
+
+
+        databaseReference = FirebaseDatabase.getInstance().getReference("notices");
 
         year = (MaterialSpinner) findViewById(R.id.spinnerClass);
 
@@ -128,6 +140,7 @@ public class NoticesMainActivity extends AppCompatActivity {
                             notif_year);
                     String uploadID = mDatabase.push().getKey();
                     mDatabase.child(uploadID).setValue(upload);
+
                 }
 
             }
@@ -232,6 +245,31 @@ public class NoticesMainActivity extends AppCompatActivity {
                                             notif_year);
                                     String uploadID = mDatabase.push().getKey();
                                     mDatabase.child(uploadID).setValue(upload);
+
+
+                                    //FIRESTORE UPLOAD
+                                    Map<String, Object> note = new HashMap<>();
+                                    note.put("id", auth.getUid());
+                                    note.put("description", notificationText);
+                                    note.put("image_url", uri.toString());
+                                    note.put("timestamp", currenttimestamp);
+                                    note.put("notice_to", notif_year);
+                                    db.collection("notices").document(uploadID).set(note)
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+
+                                                    Toast.makeText(NoticesMainActivity.this, "Upload successfully to firestore", Toast.LENGTH_LONG).show();
+
+                                                }
+                                            }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(NoticesMainActivity.this, "Error!", Toast.LENGTH_SHORT).show();
+                                            Log.d(TAG, e.toString());
+                                        }
+                                    });
+
                                     Toast.makeText(NoticesMainActivity.this, "Upload successfully", Toast.LENGTH_LONG).show();
 
                                     lottieAnimationView.setVisibility(View.INVISIBLE);
