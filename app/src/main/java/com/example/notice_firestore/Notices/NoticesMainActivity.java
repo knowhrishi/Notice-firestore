@@ -136,8 +136,34 @@ public class NoticesMainActivity extends AppCompatActivity {
                         });
 
                 notificationText = editTextName.getText().toString();
-                notificationText = notificationText.replaceAll("\\*", " <b>");
+                notificationText= notificationText.replaceAll("\n"," <br>");
 
+
+                editTextName.setText(notificationText);
+                if(!notificationText.equals("")){
+                    int FLG=0,length=notificationText.length();
+
+                    String subText = null;
+                    for (int i=0;i<length;i++){
+                         if(notificationText.charAt(i)=='*'){
+                            if(FLG==0) {
+                                subText = notificationText.substring(0, i) + "<b>" + notificationText.substring(i + 1);
+                                notificationText=subText;
+                                length=notificationText.length();
+                                FLG=1;
+                            }else {
+                                subText = notificationText.substring(0, i ) + "</b>" + notificationText.substring(i + 1);
+                                notificationText=subText;
+                                length=notificationText.length();
+                                FLG=0;
+                            }
+
+                        }
+
+                    }
+
+                    editTextName.setText(notificationText);
+                }
 
                 if (filePath != null) {
                     uploadFile();
