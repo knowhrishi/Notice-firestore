@@ -1,18 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_show_images"
     android:layout_width="match_parent"
     android:background="#EBEBEB"
     android:layout_height="match_parent">
-
-
-    <LinearLayout
-        android:id="@+id/ly_list_form"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:orientation="vertical">
 
 
         <androidx.recyclerview.widget.RecyclerView
@@ -22,15 +15,7 @@
             android:padding="5dp">
 
         </androidx.recyclerview.widget.RecyclerView>
-    </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/ly_bar_bottom"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:gravity="right"
-        android:orientation="horizontal">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/add_notice"
@@ -42,6 +27,5 @@
             app:borderWidth="0dp"
             app:elevation="6dp"
             app:pressedTranslationZ="12dp" />
-    </LinearLayout>
 
-</RelativeLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

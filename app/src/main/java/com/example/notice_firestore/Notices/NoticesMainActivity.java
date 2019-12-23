@@ -10,6 +10,7 @@ import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.NumberPicker;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,6 +23,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -46,6 +48,7 @@ public class NoticesMainActivity extends AppCompatActivity {
     private Button buttonUpload;
     private EditText editTextName;
     private ImageView imageView;
+    private NumberPicker numberPickerPriority;
 
 
     private static final String TAG = "NoticeMainActivity";
@@ -59,9 +62,9 @@ public class NoticesMainActivity extends AppCompatActivity {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private FirebaseAuth auth;
     private DocumentReference noteRef;
-    private DatabaseReference databaseReference, myRef;
+    private DatabaseReference databaseReference;
     private FirebaseDatabase mFirebaseDatabase;
-    String authorname,notificationText="";
+    String authorname, notificationText = "";
     String currenttimestamp;
     LottieAnimationView lottieAnimationView;
 
@@ -75,17 +78,18 @@ public class NoticesMainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notices_main);
 
-        lottieAnimationView=findViewById(R.id.upload);
+        lottieAnimationView = findViewById(R.id.upload);
         buttonChoose = (Button) findViewById(R.id.buttonChoose);
         buttonUpload = (Button) findViewById(R.id.buttonUpload);
         imageView = (ImageView) findViewById(R.id.imageView);
         editTextName = (EditText) findViewById(R.id.editText);
-//        textViewShow = (TextView) findViewById(R.id.textViewShow);
 
         auth = FirebaseAuth.getInstance();
         mFirebaseDatabase = FirebaseDatabase.getInstance();
-        myRef = mFirebaseDatabase.getReference();
 
+        numberPickerPriority = findViewById(R.id.number_picker_priority);
+        numberPickerPriority.setMinValue(1);
+        numberPickerPriority.setMaxValue(10);
 
         databaseReference = FirebaseDatabase.getInstance().getReference("notices");
 
@@ -97,7 +101,7 @@ public class NoticesMainActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference(Constants.DATABASE_PATH_UPLOADS);
 
 
-
+        //priority = numberPickerPriority.getValue();
         buttonChoose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -110,45 +114,55 @@ public class NoticesMainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
+                noteRef = db.collection("users").document(auth.getUid());
+                noteRef.get()
+                        .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                            @Override
+                            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                                if (documentSnapshot.exists()) {
+                                    authorname = documentSnapshot.getString("first_name") + " " + documentSnapshot.getString("last_name");
+                                }
+                                lottieAnimationView.pauseAnimation();
+                                lottieAnimationView.setVisibility(View.INVISIBLE);
+                            }
+
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                lottieAnimationView.pauseAnimation();
+                                lottieAnimationView.setVisibility(View.INVISIBLE);
+                            }
+                        });
+
                 notificationText = editTextName.getText().toString();
-                notificationText= notificationText.replaceAll("\\*"," <b>");
+                notificationText = notificationText.replaceAll("\\*", " <b>");
 
 
-                editTextName.setText(notificationText);
-               /* if(!notificationText.equals("")){
-                    StringBuilder myName = new StringBuilder("domanokz");
-                    int FLG=0;
-                    for (int i=0;i<notificationText.length();i++){
-                        if(notificationText.charAt(i)=='*'){
-                            FLG=1;
-                            StringBuilder.setCa
-                        }
-                    }
-                }*/
-
-                if(filePath!=null){
+                if (filePath != null) {
                     uploadFile();
                     lottieAnimationView.setVisibility(View.VISIBLE);
                     lottieAnimationView.playAnimation();
-                }else {
-                    Upload upload = new Upload(
-                            auth.getUid(),
+                } else {
+//
+                    int priority = numberPickerPriority.getValue();
+                    CollectionReference notebookRef = FirebaseFirestore.getInstance()
+                            .collection("notices");
+                    notebookRef.add(new Note(auth.getUid(),
                             notificationText,
                             "empty",
                             authorname,
                             currenttimestamp,
-                            notif_year);
-                    String uploadID = mDatabase.push().getKey();
-                    mDatabase.child(uploadID).setValue(upload);
+                            notif_year,
+                            priority));
+                    Toast.makeText(NoticesMainActivity.this, "Added", Toast.LENGTH_SHORT).show();
+                    finish();
 
                 }
 
             }
         });
 
-
-
-        //year = (MaterialSpinner) findViewById(R.id.spinnerYear);
         year.setItems("FE-1", "FE-2", "FE-3", "SE-1", "SE-2", "SE-3", "TE-1", "TE-2", "TE-3", "BE-1", "BE-2", "BE-3");
         year.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener<String>() {
             @Override
@@ -157,33 +171,8 @@ public class NoticesMainActivity extends AppCompatActivity {
             }
         });
 
-
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         currenttimestamp = dateFormat.format(new Date());
-
-        noteRef = db.collection("faculties").document(auth.getUid());
-        noteRef.get()
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-
-                        if (documentSnapshot.exists()) {
-                            authorname = documentSnapshot.getString("name");
-                        }
-                        lottieAnimationView.pauseAnimation();
-                        lottieAnimationView.setVisibility(View.INVISIBLE);
-                    }
-
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        lottieAnimationView.pauseAnimation();
-                        lottieAnimationView.setVisibility(View.INVISIBLE);
-                    }
-                });
-
-
     }
 
 
@@ -197,20 +186,10 @@ public class NoticesMainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-//        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-//            filePath = data.getData();
-//            try {
-//                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), filePath);
-//                imageView.setImageBitmap(bitmap);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-
-
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             filePath = data.getData();
 
-            Picasso.get().load(filePath).resize(400,400).into(imageView);
+            Picasso.get().load(filePath).resize(400, 400).into(imageView);
         }
     }
 
@@ -233,44 +212,24 @@ public class NoticesMainActivity extends AppCompatActivity {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                             //dismissing the progress dialog
+
+
                             sRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                 @Override
                                 public void onSuccess(Uri uri) {
-                                    Upload upload = new Upload(
-                                            auth.getUid(),
+//
+                                    int priority = numberPickerPriority.getValue();
+                                    CollectionReference notebookRef = FirebaseFirestore.getInstance()
+                                            .collection("notices");
+                                    notebookRef.add(new Note(auth.getUid(),
                                             notificationText,
                                             uri.toString(),
                                             authorname,
                                             currenttimestamp,
-                                            notif_year);
-                                    String uploadID = mDatabase.push().getKey();
-                                    mDatabase.child(uploadID).setValue(upload);
-
-
-                                    //FIRESTORE UPLOAD
-                                    Map<String, Object> note = new HashMap<>();
-                                    note.put("id", auth.getUid());
-                                    note.put("description", notificationText);
-                                    note.put("image_url", uri.toString());
-                                    note.put("timestamp", currenttimestamp);
-                                    note.put("notice_to", notif_year);
-                                    db.collection("notices").document(uploadID).set(note)
-                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                @Override
-                                                public void onSuccess(Void aVoid) {
-
-                                                    Toast.makeText(NoticesMainActivity.this, "Upload successfully to firestore", Toast.LENGTH_LONG).show();
-
-                                                }
-                                            }).addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            Toast.makeText(NoticesMainActivity.this, "Error!", Toast.LENGTH_SHORT).show();
-                                            Log.d(TAG, e.toString());
-                                        }
-                                    });
-
-                                    Toast.makeText(NoticesMainActivity.this, "Upload successfully", Toast.LENGTH_LONG).show();
+                                            notif_year,
+                                            priority));
+                                    Toast.makeText(NoticesMainActivity.this, "Added", Toast.LENGTH_SHORT).show();
+                                    finish();
 
                                     lottieAnimationView.setVisibility(View.INVISIBLE);
                                     lottieAnimationView.pauseAnimation();
